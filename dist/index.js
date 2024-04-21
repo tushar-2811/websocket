@@ -27,10 +27,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ws_1 = __importStar(require("ws"));
-const http_1 = __importDefault(require("http"));
-const server = http_1.default.createServer(function (request, response) {
-    console.log(new Date() + 'Recieved request for ' + request.url);
-    response.end("hi there");
+const express_1 = __importDefault(require("express"));
+// import http from 'http'
+// const server = http.createServer(function(request : any , response : any){
+//     console.log(new Date() + 'Recieved request for ' + request.url);
+//     response.end("hi there");
+// })
+const app = (0, express_1.default)();
+const server = app.listen(8080, () => {
+    console.log(new Date() + `Server is listening on port 8080`);
 });
 const wss = new ws_1.WebSocketServer({ server });
 let userCount = 0;
@@ -48,6 +53,6 @@ wss.on('connection', function (socket) {
     console.log("user connected", ++userCount);
     socket.send("Hello ! message from server!!");
 });
-server.listen(8080, function () {
-    console.log(new Date() + "server is listening on port : 8080");
-});
+// server.listen(8080 , function() {
+//     console.log(new Date() + "server is listening on port : 8080");
+// })

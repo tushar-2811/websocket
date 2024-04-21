@@ -1,10 +1,17 @@
 import WebSocket, {WebSocketServer} from "ws";
-import http from 'http'
+import express from 'express'
 
-const server = http.createServer(function(request : any , response : any){
-    console.log(new Date() + 'Recieved request for ' + request.url);
-    response.end("hi there");
-})
+// import http from 'http'
+
+// const server = http.createServer(function(request : any , response : any){
+//     console.log(new Date() + 'Recieved request for ' + request.url);
+//     response.end("hi there");
+// })
+
+const app = express();
+const server = app.listen(8080 , () => {
+    console.log(new Date() + `Server is listening on port 8080`)
+});
 
 const wss = new WebSocketServer({server});
 let userCount = 0; 
@@ -28,6 +35,6 @@ wss.on('connection' , function(socket) {
 
 
 
-server.listen(8080 , function() {
-    console.log(new Date() + "server is listening on port : 8080");
-})
+// server.listen(8080 , function() {
+//     console.log(new Date() + "server is listening on port : 8080");
+// })
