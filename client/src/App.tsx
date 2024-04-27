@@ -41,7 +41,7 @@ function App() {
 
      {
        <div className="text-red-500 text-xl my-4 ">
-        {latestMessages}
+      Last Message from server :   {latestMessages}
        </div>
      }
     </>
