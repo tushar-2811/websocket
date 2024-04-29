@@ -8,6 +8,7 @@ function App() {
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080");
+
     socket.onopen = () => {
       console.log("Connected");
       setSocket(socket);
@@ -23,6 +24,16 @@ function App() {
    }
 } ,[])
 
+  const sendMessage = () => {
+    try {
+      socket?.send(data);
+      setData("");
+    } catch (error) {
+      console.log(error);
+      return;
+    }
+  }
+
   if(!socket){
     return <div>
       connecting to socket server.....
@@ -31,11 +42,11 @@ function App() {
 
   return (
     <>
-     <h1 className='text-green-400'>hello tushar</h1>
+     <h1 className='text-green-400'>hello Handsome</h1>
 
      <input type="text" className="px-4 py-2 border-2 my-2" value={data} onChange={(e) => setData(e.target.value)} />
 
-     <button className="px-4 py-2 border-2 rounded-md" onClick={() => {socket.send(data)}}>
+     <button className="px-4 py-2 border-2 rounded-md" onClick={sendMessage}>
       Send
      </button>
 
