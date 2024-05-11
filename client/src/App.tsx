@@ -42,7 +42,7 @@ function App() {
 
   return (
     <>
-     <h1 className='text-green-400'>hello Handsome</h1>
+     <h1 className='text-green-400'>hello , man </h1>
 
      <input type="text" className="px-4 py-2 border-2 my-2" value={data} onChange={(e) => setData(e.target.value)} />
 
