@@ -29,7 +29,7 @@ wss.on('connection' , function(socket) {
         });
     });
     console.log("user connected" , ++userCount);
-    socket.send("Hello ! message from server!!");
+    socket.send("Hello,message from server!!");
 })
 
 
