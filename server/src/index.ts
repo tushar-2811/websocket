@@ -1,5 +1,5 @@
 import WebSocket, {WebSocketServer} from "ws";
-import express from 'express'
+import express , {Request} from 'express'
 
 // import http from 'http'
 
@@ -16,25 +16,40 @@ const server = app.listen(8080 , () => {
 const wss = new WebSocketServer({server});
 let userCount = 0; 
 
-wss.on('connection' , function(socket) {
-    socket.on('error' , (err) => {
-        console.error(err);
+const users : {[key : string] : {
+    room : string;
+    ws : any
+}} = {};
+
+wss.on('connection' , function(ws , req) {
+    console.log("new connection" , ws);
+    const wsId = userCount++; // unique id for each websocket connection
+
+    ws.on("message" , (message : string) => {
+        const data = JSON.parse(message.toString());
+
+        if(data.type === "join"){
+            users[wsId] = {
+                room: data.payload.roomId,
+                ws  : ws
+            }
+        }
+
+        if(data.type === "message"){
+            const roomId = users[wsId].room;
+            const message = data.payload.message;
+
+            Object.keys(users).forEach((wsId) => {
+                if(users[wsId].room === roomId){
+                    users[wsId].ws.send(JSON.stringify({
+                        type : "message",
+                        payload : {
+                            message
+                        }
+                    }))
+                }
+            })
+        }
     })
 
-    socket.on('message' , function message(data , isBinary) {
-        wss.clients.forEach(function each(client){
-            if(client.readyState === WebSocket.OPEN ){
-                client.send(data , {binary : isBinary});
-            }
-        });
-    });
-    console.log("user connected" , ++userCount);
-    socket.send("Hello,message from server!!");
 })
-
-
-
-
-// server.listen(8080 , function() {
-//     console.log(new Date() + "server is listening on port : 8080");
-// })

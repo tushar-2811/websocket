@@ -1,32 +1,9 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const ws_1 = __importStar(require("ws"));
+const ws_1 = require("ws");
 const express_1 = __importDefault(require("express"));
 // import http from 'http'
 // const server = http.createServer(function(request : any , response : any){
@@ -39,20 +16,33 @@ const server = app.listen(8080, () => {
 });
 const wss = new ws_1.WebSocketServer({ server });
 let userCount = 0;
-wss.on('connection', function (socket) {
-    socket.on('error', (err) => {
-        console.error(err);
+const users = {};
+wss.on('connection', function (ws, req) {
+    console.log("new connection", ws);
+    const wsId = userCount++; // unique id for each websocket connection
+    ws.on("message", (message) => {
+        const data = JSON.parse(message.toString());
+        console.log(data);
+        if (data.type === "join") {
+            users[wsId] = {
+                room: data.payload.roomId,
+                ws: ws
+            };
+        }
+        if (data.type === "message") {
+            console.log(users[wsId]);
+            const roomId = users[wsId].room;
+            const message = data.payload.message;
+            Object.keys(users).forEach((wsId) => {
+                if (users[wsId].room === roomId) {
+                    users[wsId].ws.send(JSON.stringify({
+                        type: "message",
+                        payload: {
+                            message
+                        }
+                    }));
+                }
+            });
+        }
     });
-    socket.on('message', function message(data, isBinary) {
-        wss.clients.forEach(function each(client) {
-            if (client.readyState === ws_1.default.OPEN) {
-                client.send(data, { binary: isBinary });
-            }
-        });
-    });
-    console.log("user connected", ++userCount);
-    socket.send("Hello ! message from server!!");
 });
-// server.listen(8080 , function() {
-//     console.log(new Date() + "server is listening on port : 8080");
-// })
