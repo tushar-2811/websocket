@@ -22,13 +22,15 @@ const users : {[key : string] : {
 }} = {};
 
 wss.on('connection' , function(ws , req) {
-    console.log("new connection" , ws);
     const wsId = userCount++; // unique id for each websocket connection
+    console.log("new connection with websocket id : ", wsId );
+
 
     ws.on("message" , (message : string) => {
         const data = JSON.parse(message.toString());
 
         if(data.type === "join"){
+            console.log("inside join" , wsId);
             users[wsId] = {
                 room: data.payload.roomId,
                 ws  : ws
@@ -36,11 +38,13 @@ wss.on('connection' , function(ws , req) {
         }
 
         if(data.type === "message"){
-            const roomId = users[wsId].room;
+            console.log("inside message", wsId);
+            const socketId:string = wsId.toString();
+            const roomId = users[socketId].room;
             const message = data.payload.message;
 
             Object.keys(users).forEach((wsId) => {
-                if(users[wsId].room === roomId){
+                if(users[wsId].room === roomId && socketId !== wsId){
                     users[wsId].ws.send(JSON.stringify({
                         type : "message",
                         payload : {
