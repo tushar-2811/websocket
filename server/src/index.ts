@@ -1,5 +1,6 @@
 import WebSocket, {WebSocketServer} from "ws";
 import express , {Request} from 'express'
+import { RedisSubscriptionManager } from "./RedisClient";
 
 // import http from 'http'
 
@@ -34,7 +35,10 @@ wss.on('connection' , function(ws , req) {
             users[wsId] = {
                 room: data.payload.roomId,
                 ws  : ws
-            }
+            };
+            RedisSubscriptionManager.getInstance().subscribe(wsId.toString(),data.payload.roomId , ws);
+
+
         }
 
         if(data.type === "message"){
@@ -43,17 +47,24 @@ wss.on('connection' , function(ws , req) {
             const roomId = users[socketId].room;
             const message = data.payload.message;
 
-            Object.keys(users).forEach((wsId) => {
-                if(users[wsId].room === roomId && socketId !== wsId){
-                    users[wsId].ws.send(JSON.stringify({
-                        type : "message",
-                        payload : {
-                            message
-                        }
-                    }))
-                }
-            })
+            RedisSubscriptionManager.getInstance().addChatMessage(roomId , message);
+
+        //     Object.keys(users).forEach((wsId) => {
+        //         if(users[wsId].room === roomId && socketId !== wsId){
+        //             users[wsId].ws.send(JSON.stringify({
+        //                 type : "message",
+        //                 payload : {
+        //                     message
+        //                 }
+        //             }))
+        //         }
+        //     })
         }
+    });
+
+    ws.on("close" , () => {
+        RedisSubscriptionManager.getInstance().unsubscribe(wsId.toString() , users[wsId].room);
+        
     })
 
 })

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const ws_1 = require("ws");
 const express_1 = __importDefault(require("express"));
+const RedisClient_1 = require("./RedisClient");
 // import http from 'http'
 // const server = http.createServer(function(request : any , response : any){
 //     console.log(new Date() + 'Recieved request for ' + request.url);
@@ -28,22 +29,27 @@ wss.on('connection', function (ws, req) {
                 room: data.payload.roomId,
                 ws: ws
             };
+            RedisClient_1.RedisSubscriptionManager.getInstance().subscribe(wsId.toString(), data.payload.roomId, ws);
         }
         if (data.type === "message") {
             console.log("inside message", wsId);
             const socketId = wsId.toString();
             const roomId = users[socketId].room;
             const message = data.payload.message;
-            Object.keys(users).forEach((wsId) => {
-                if (users[wsId].room === roomId && socketId !== wsId) {
-                    users[wsId].ws.send(JSON.stringify({
-                        type: "message",
-                        payload: {
-                            message
-                        }
-                    }));
-                }
-            });
+            RedisClient_1.RedisSubscriptionManager.getInstance().addChatMessage(roomId, message);
+            //     Object.keys(users).forEach((wsId) => {
+            //         if(users[wsId].room === roomId && socketId !== wsId){
+            //             users[wsId].ws.send(JSON.stringify({
+            //                 type : "message",
+            //                 payload : {
+            //                     message
+            //                 }
+            //             }))
+            //         }
+            //     })
         }
+    });
+    ws.on("close", () => {
+        RedisClient_1.RedisSubscriptionManager.getInstance().unsubscribe(wsId.toString(), users[wsId].room);
     });
 });
