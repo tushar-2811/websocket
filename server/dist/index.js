@@ -36,7 +36,7 @@ wss.on('connection', function (ws, req) {
             const socketId = wsId.toString();
             const roomId = users[socketId].room;
             const message = data.payload.message;
-            RedisClient_1.RedisSubscriptionManager.getInstance().addChatMessage(roomId, message);
+            RedisClient_1.RedisSubscriptionManager.getInstance().addChatMessage(roomId, wsId.toString(), message);
             //     Object.keys(users).forEach((wsId) => {
             //         if(users[wsId].room === roomId && socketId !== wsId){
             //             users[wsId].ws.send(JSON.stringify({
@@ -50,6 +50,12 @@ wss.on('connection', function (ws, req) {
         }
     });
     ws.on("close", () => {
-        RedisClient_1.RedisSubscriptionManager.getInstance().unsubscribe(wsId.toString(), users[wsId].room);
+        console.log(`Connection closed for wsId ${wsId}`);
+        if (users[wsId]) {
+            RedisClient_1.RedisSubscriptionManager.getInstance().unsubscribe(wsId.toString(), users[wsId].room);
+        }
+    });
+    ws.on("error", (error) => {
+        console.log(`Error for wsId ${wsId}:`, error);
     });
 });
